@@ -15,6 +15,8 @@ const SubmitQuestion = require("./routes/SubmitQuestion")
 const Student = require("./routes/Student")
 const University = require("./routes/University")
 const Email = require("./routes/Email")
+const OnlineUserRoute = require("./routes/OnlineUserRoute")
+const OfflineUserRoute = require("./routes/OfflineUserRoute")
 connectDB();
 app.use(cors());
 app.use(express.json());
@@ -28,6 +30,8 @@ app.use("/scheduleconsultation",scheduleConsultation)
 app.use("/workshop",WorkshopSchedule)
 app.use("/schedule-visit",SchedduleVisit)
 app.use("/questions-not-found",SubmitQuestion)
+app.use("/api",OnlineUserRoute)
+app.use("/api/offline",OfflineUserRoute)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });
