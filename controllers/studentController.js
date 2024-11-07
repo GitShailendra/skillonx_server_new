@@ -1,9 +1,15 @@
+const bcrypt = require('bcrypt');
 const Student = require('../models/Student');
 
 // Controller for registering a student
 exports.registerStudent = async (req, res) => {
   try {
-    const student = new Student(req.body);
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    console.log(hashedPassword);
+    const student = new Student({
+      ...req.body,
+      password: hashedPassword
+    });    
     await student.save();
     res.status(201).json({ message: 'Student registered successfully' });
   } catch (error) {
@@ -28,8 +34,8 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // Compare the plain-text password
-    if (password !== user.password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return res.status(400).json({ message: "Invalid password" });
     }
 

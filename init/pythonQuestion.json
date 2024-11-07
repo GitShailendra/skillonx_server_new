@@ -1,0 +1,121 @@
+[
+    {
+      "question": "What is the output of `print(type([]) is list)`?",
+      "options": ["True", "False", "None", "Error"],
+      "correctAnswer": "True",
+      "category": "Python"
+    },
+    {
+      "question": "Which of the following is the correct extension of the Python file?",
+      "options": [".python", ".pl", ".py", ".p"],
+      "correctAnswer": ".py",
+      "category": "Python"
+    },
+    {
+      "question": "What is the maximum possible length of an identifier in Python?",
+      "options": ["31 characters", "63 characters", "79 characters", "No fixed length"],
+      "correctAnswer": "No fixed length",
+      "category": "Python"
+    },
+    {
+      "question": "Which keyword is used for function in Python?",
+      "options": ["Function", "Def", "Fun", "Define"],
+      "correctAnswer": "Def",
+      "category": "Python"
+    },
+    {
+      "question": "Which of the following is not a core data type in Python?",
+      "options": ["Lists", "Dictionary", "Tuples", "Class"],
+      "correctAnswer": "Class",
+      "category": "Python"
+    },
+    {
+      "question": "Which of the following functions can help us to find the version of Python that we are currently working on?",
+      "options": ["sys.version", "sys.version()", "sys.version(0)", "sys.version(1)"],
+      "correctAnswer": "sys.version",
+      "category": "Python"
+    },
+    {
+      "question": "What will be the output of `print(2**3)`?",
+      "options": ["6", "9", "8", "7"],
+      "correctAnswer": "8",
+      "category": "Python"
+    },
+    {
+      "question": "What does the `//` operator do in Python?",
+      "options": [
+        "Performs integer division",
+        "Performs exponentiation",
+        "Performs floating-point division",
+        "Performs modulo operation"
+      ],
+      "correctAnswer": "Performs integer division",
+      "category": "Python"
+    },
+    {
+      "question": "Which of the following functions is used to convert an integer to a string in Python?",
+      "options": ["int(x)", "str(x)", "float(x)", "chr(x)"],
+      "correctAnswer": "str(x)",
+      "category": "Python"
+    },
+    {
+      "question": "Which of the following data types does not allow duplicate values?",
+      "options": ["List", "Dictionary", "Tuple", "Set"],
+      "correctAnswer": "Set",
+      "category": "Python"
+    },{
+      "question": "Which method can be used to remove any whitespace from the beginning or the end of a string?",
+      "options": ["strip()", "trim()", "cut()", "remove()"],
+      "correctAnswer": "strip()",
+      "category": "Python Strings"
+    },
+    {
+      "question": "Which of the following is a mutable data type in Python?",
+      "options": ["List", "Tuple", "String", "Integer"],
+      "correctAnswer": "List",
+      "category": "Python Data Types"
+    },
+    {
+      "question": "What is the output of `print('hello'.upper())`?",
+      "options": ["HELLO", "Hello", "hello", "None"],
+      "correctAnswer": "HELLO",
+      "category": "Python Strings"
+    },
+    {
+      "question": "Which of the following is not a keyword in Python?",
+      "options": ["pass", "import", "return", "execute"],
+      "correctAnswer": "execute",
+      "category": "Python Keywords"
+    },
+    {
+      "question": "Which module in Python supports regular expressions?",
+      "options": ["re", "regex", "pyregex", "regexp"],
+      "correctAnswer": "re",
+      "category": "Python Modules"
+    },
+    {
+      "question": "Which of the following function converts a string to all uppercase in Python?",
+      "options": ["upper()", "uppercase()", "capwords()", "toupper()"],
+      "correctAnswer": "upper()",
+      "category": "Python Strings"
+    },
+    {
+      "question": "What is the output of `print(2 * 3 ** 2)`?",
+      "options": ["12", "18", "16", "36"],
+      "correctAnswer": "18",
+      "category": "Python Operators"
+    },
+    {
+      "question": "Which of these collections defines a key-value pair?",
+      "options": ["List", "Dictionary", "Tuple", "Set"],
+      "correctAnswer": "Dictionary",
+      "category": "Python Data Types"
+    },
+    {
+      "question": "Which keyword is used to begin a class definition in Python?",
+      "options": ["function", "class", "define", "def"],
+      "correctAnswer": "class",
+      "category": "Python Classes"
+    }
+]
+  
