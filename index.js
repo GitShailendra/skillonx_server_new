@@ -18,7 +18,18 @@ const Email = require("./routes/Email")
 const OnlineUserRoute = require("./routes/OnlineUserRoute")
 const OfflineUserRoute = require("./routes/OfflineUserRoute")
 connectDB();
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://skillonx.com",
+      "https://skillonx.com/",
+      "https://lucky-yeot-c08cc8.netlify.app/"
+    ],
+    // methods:['GET','POST'],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/home",home)
 app.use("/stayconnected",Email)
