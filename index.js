@@ -18,6 +18,7 @@ const Email = require("./routes/Email")
 const OnlineUserRoute = require("./routes/OnlineUserRoute")
 const OfflineUserRoute = require("./routes/OfflineUserRoute")
 const QuestionRoute = require("./routes/QuestionRoutes")
+const CheckType = require("./routes/CheckType")
 connectDB();
 app.use(
   cors({
@@ -45,6 +46,7 @@ app.use("/questions-not-found",SubmitQuestion)
 app.use("/api",OnlineUserRoute)
 app.use("/api/offline",OfflineUserRoute)
 app.use("/questions",QuestionRoute)
+app.use("/check-type",CheckType)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });

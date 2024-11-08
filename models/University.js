@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const universitySchema = new mongoose.Schema({
+  userType:{
+    type:String,
+    required:true,
+  },
   universityName: {
     type: String,
     required: [true, 'University name is required'],

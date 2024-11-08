@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
+  userType:{
+    type:String,
+    required:true
+  },
   firstName: {
     type: String,
     required: [true, 'First name is required'],

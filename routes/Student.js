@@ -4,5 +4,5 @@ const { registerStudent ,login} = require('../controllers/studentController');
 
 // Route to register a student
 router.post('/', registerStudent);
-router.post("/login",login)
+// router.post("/login",login)
 module.exports = router;
