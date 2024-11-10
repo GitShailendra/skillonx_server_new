@@ -3,6 +3,8 @@ const express = require("express");
 const app = express();
 const connectDB = require('./config/db');
 const cors = require("cors")
+const cookieParser = require("cookie-parser")
+const expressSession = require("express-session")
 const home = require("./routes/home")
 // const userRoutes = require("./routes/userRoutes")
 const PORT = process.env.PORT||5000;
@@ -33,6 +35,12 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
+app.use(expressSession({
+  resave:false,
+  saveUninitialized:false,
+  secret: "secret",
+}))
 app.use("/home",home)
 app.use("/stayconnected",Email)
 app.use('/student', Student);
