@@ -32,7 +32,11 @@ const universitySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
-  }
+  },
+  workshops:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workshop',
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('University', universitySchema);

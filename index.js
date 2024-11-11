@@ -21,6 +21,8 @@ const OnlineUserRoute = require("./routes/OnlineUserRoute")
 const OfflineUserRoute = require("./routes/OfflineUserRoute")
 const QuestionRoute = require("./routes/QuestionRoutes")
 const CheckType = require("./routes/CheckType")
+const addWorkshop = require("./routes/addWorkshop")
+// const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
 app.use(
   cors({
@@ -30,6 +32,7 @@ app.use(
       "https://skillonx.com/",
       "https://lucky-yeot-c08cc8.netlify.app/"
     ],
+   
     // methods:['GET','POST'],
     credentials: true,
   })
@@ -55,6 +58,8 @@ app.use("/api",OnlineUserRoute)
 app.use("/api/offline",OfflineUserRoute)
 app.use("/questions",QuestionRoute)
 app.use("/check-type",CheckType)
+app.use("/workshops",addWorkshop)
+// app.use("/add",workshopRoutes)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });

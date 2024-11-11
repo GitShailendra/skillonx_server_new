@@ -111,5 +111,55 @@ const protectAny = async (req, res, next) => {
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
+// const protect = async (req, res, next) => {
+//   try {
+//       const token = req.cookies.token;
+      
+//       if (!token) {
+//           return res.status(401).json({
+//               success: false,
+//               message: 'Not authorized, no token'
+//           });
+//       }
 
-module.exports = { protectStudent, protectUniversity, protectAny };
+//       // Verify token using your JWT_KEY
+//       const decoded = jwt.verify(token, process.env.JWT_KEY);
+      
+//       // Log for debugging
+//       console.log('Decoded token:', decoded);
+
+//       if (!decoded.id) {
+//           return res.status(401).json({
+//               success: false,
+//               message: 'Invalid token format'
+//           });
+//       }
+
+//       // Get university from database
+//       const university = await University.findById(decoded.id);
+      
+//       if (!university) {
+//           return res.status(401).json({
+//               success: false,
+//               message: 'University not found'
+//           });
+//       }
+
+//       // Set university in request object
+//       req.university = university;
+      
+//       // Log for debugging
+//       console.log('University set in request:', req.university._id);
+
+//       next();
+//   } catch (error) {
+//       console.error('Auth middleware error:', error);
+//       res.status(401).json({
+//           success: false,
+//           message: 'Not authorized, token failed',
+//           error: error.message
+//       });
+//   }
+// };
+
+module.exports = { protectStudent, protectUniversity, protectAny};

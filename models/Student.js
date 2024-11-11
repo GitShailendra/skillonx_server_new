@@ -58,6 +58,12 @@ const studentSchema = new mongoose.Schema({
     },
     
   },
+  universityName: {
+    type: String,
+    required: [true, 'University name is required'],
+    minlength: [2, 'University name must be at least 2 characters'],
+    maxlength: [100, 'University name cannot exceed 100 characters']
+  },
   currentEducation: {
     type: String,
     required: [true, 'Current education is required'],
