@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const universitySchema = new mongoose.Schema({
+  userType:{
+    type:String,
+    required:true,
+  },
   universityName: {
     type: String,
     required: [true, 'University name is required'],
@@ -28,7 +32,19 @@ const universitySchema = new mongoose.Schema({
     type: String,
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
-  }
+  },
+  workshops:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workshop',
+  }],
+  assessments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Assessment',
+  }],
+  students:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('University', universitySchema);

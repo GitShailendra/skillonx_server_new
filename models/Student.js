@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
+  userType:{
+    type:String,
+    required:true
+  },
   firstName: {
     type: String,
     required: [true, 'First name is required'],
@@ -54,6 +58,12 @@ const studentSchema = new mongoose.Schema({
     },
     
   },
+  universityName: {
+    type: String,
+    required: [true, 'University name is required'],
+    minlength: [2, 'University name must be at least 2 characters'],
+    maxlength: [100, 'University name cannot exceed 100 characters']
+  },
   currentEducation: {
     type: String,
     required: [true, 'Current education is required'],
@@ -64,7 +74,11 @@ const studentSchema = new mongoose.Schema({
     required: [true, 'Passing year is required'],
     min: [1900, 'Passing year must be after 1900'],
     max: [new Date().getFullYear() + 10, 'Passing year cannot be more than 10 years from the current year']
-  }
+  },
+  workshops:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workshop',
+  }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);

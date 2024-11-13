@@ -3,6 +3,8 @@ const express = require("express");
 const app = express();
 const connectDB = require('./config/db');
 const cors = require("cors")
+const cookieParser = require("cookie-parser")
+const expressSession = require("express-session")
 const home = require("./routes/home")
 // const userRoutes = require("./routes/userRoutes")
 const PORT = process.env.PORT||5000;
@@ -17,9 +19,32 @@ const University = require("./routes/University")
 const Email = require("./routes/Email")
 const OnlineUserRoute = require("./routes/OnlineUserRoute")
 const OfflineUserRoute = require("./routes/OfflineUserRoute")
+const QuestionRoute = require("./routes/QuestionRoutes")
+const CheckType = require("./routes/CheckType")
+const addWorkshop = require("./routes/addWorkshop")
+const addAssessments = require("./routes/addAssessments")
+// const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://skillonx.com",
+      "https://skillonx.com/",
+      "https://lucky-yeot-c08cc8.netlify.app/"
+    ],
+   
+    // methods:['GET','POST'],
+    credentials: true,
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
+app.use(expressSession({
+  resave:false,
+  saveUninitialized:false,
+  secret: "secret",
+}))
 app.use("/home",home)
 app.use("/stayconnected",Email)
 app.use('/student', Student);
@@ -32,6 +57,11 @@ app.use("/schedule-visit",SchedduleVisit)
 app.use("/questions-not-found",SubmitQuestion)
 app.use("/api",OnlineUserRoute)
 app.use("/api/offline",OfflineUserRoute)
+app.use("/questions",QuestionRoute)
+app.use("/check-type",CheckType)
+app.use("/workshops",addWorkshop)
+app.use("/assessments",addAssessments)
+
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });
