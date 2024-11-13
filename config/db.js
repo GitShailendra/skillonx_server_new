@@ -5,8 +5,7 @@ const questionsData = require("../init/pythonQuestion")
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URL,{
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      
     });
     await Question.deleteMany({ category: 'Python' });
 
