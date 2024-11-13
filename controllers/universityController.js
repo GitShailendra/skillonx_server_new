@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt")
-const University = require('../models/University');
+const Student = require('../models/Student');
+const University = require('../models/University'); 
 const {generateToken} = require("../utils/generateToken")
 // Controller for registering a university
 exports.registerUniversity = async (req, res) => {
@@ -16,6 +17,7 @@ exports.registerUniversity = async (req, res) => {
     });
     await university.save();
     const token = generateToken(university);
+    
     // Remove password from response
     const universityResponse = university.toObject();
     delete universityResponse.password;
@@ -91,4 +93,38 @@ exports.logout = (req, res) => {
     expires: new Date(0)
   });
   res.json({ message: 'Logged out successfully' });
+};
+
+exports.getStudents = async (req, res) => {
+  const { uniId } = req.params;
+  
+  try {
+      // First find the university to get its name
+      const university = await University.findById(uniId);
+      console.log(university)
+      if (!university) {
+          return res.status(404).json({
+              success: false,
+              message: 'University not found'
+          });
+      }
+
+      // Find all students with matching university name
+      const students = await Student.find({ 
+          universityName: university.universityName 
+      });
+
+      res.status(200).json({
+          success: true,
+          data: students,
+          message: `Found ${students.length} students from ${university.universityName}`
+      });
+
+  } catch (error) {
+      res.status(500).json({
+          success: false,
+          message: 'Error retrieving students',
+          error: error.message
+      });
+  }
 };

@@ -74,7 +74,11 @@ const studentSchema = new mongoose.Schema({
     required: [true, 'Passing year is required'],
     min: [1900, 'Passing year must be after 1900'],
     max: [new Date().getFullYear() + 10, 'Passing year cannot be more than 10 years from the current year']
-  }
+  },
+  workshops:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workshop',
+  }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);

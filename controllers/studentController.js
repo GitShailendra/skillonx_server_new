@@ -112,3 +112,34 @@ exports.logout = (req, res) => {
   });
   res.json({ message: 'Logged out successfully' });
 };
+
+exports.registerWorkshop = async (req,res)=>{
+try{
+  const{workshopId,studentId,workshopTitle,workshopDate,workshopVenue} = req.body;
+  const student = await Student.findById(studentId);
+  if (student.workshops.includes(workshopId)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'You have already registered for this workshop'
+    });
+  }
+  const stud = await Student.findByIdAndUpdate(
+    studentId,
+    {$push:{workshops:workshopId}},
+    {new:true}
+  );
+  res.status(201).json({
+    status: 'success',
+    data: stud
+  });
+
+
+}
+catch(error){
+  console.error('Assessment creation error:', error);
+      res.status(400).json({
+        status: 'error',
+        message: error.message
+      });
+}
+}

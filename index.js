@@ -22,6 +22,7 @@ const OfflineUserRoute = require("./routes/OfflineUserRoute")
 const QuestionRoute = require("./routes/QuestionRoutes")
 const CheckType = require("./routes/CheckType")
 const addWorkshop = require("./routes/addWorkshop")
+const addAssessments = require("./routes/addAssessments")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
 app.use(
@@ -59,7 +60,8 @@ app.use("/api/offline",OfflineUserRoute)
 app.use("/questions",QuestionRoute)
 app.use("/check-type",CheckType)
 app.use("/workshops",addWorkshop)
-// app.use("/add",workshopRoutes)
+app.use("/assessments",addAssessments)
+
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });

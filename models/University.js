@@ -36,6 +36,14 @@ const universitySchema = new mongoose.Schema({
   workshops:[{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workshop',
+  }],
+  assessments: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Assessment',
+  }],
+  students:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
   }]
 }, { timestamps: true });
 
