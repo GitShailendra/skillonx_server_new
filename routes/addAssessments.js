@@ -5,4 +5,5 @@ const {addAssessmentToUniversity,getAssesments,getAssessmentsStudent} = require(
 router.post("/add",addAssessmentToUniversity)
 router.get("/university/:universityId",getAssesments)
 router.get("/get-assessment/:studId",getAssessmentsStudent)
+// router.post("/submit",submitAssessment)
 module.exports = router

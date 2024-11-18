@@ -1,9 +1,39 @@
+// models/University.js
 const mongoose = require('mongoose');
 
+const universityWorkshopRegistrationSchema = new mongoose.Schema({
+  workshop: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Workshop',
+    required: true
+  },
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    required: true
+  },
+  registrationDate: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['registered', 'attended', 'completed', 'cancelled'],
+    default: 'registered'
+  },
+  attendance: {
+    type: Boolean,
+    default: false
+  }, isRead: {  // Added this field
+    type: Boolean,
+    default: false
+  }
+}, { _id: false });
+
 const universitySchema = new mongoose.Schema({
-  userType:{
-    type:String,
-    required:true,
+  userType: {
+    type: String,
+    required: true,
   },
   universityName: {
     type: String,
@@ -14,7 +44,6 @@ const universitySchema = new mongoose.Schema({
   recognizedBy: {
     type: String,
     required: [true, 'Recognition (e.g., UGC, AICTE) is required'],
-    // enum: ['UGC', 'AICTE', 'NAAC', 'NBA'] // Example recognitions; adjust as necessary
   },
   universityAddress: {
     type: String,
@@ -30,18 +59,19 @@ const universitySchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: [true, 'Password must be at least 6 characters'],
     minlength: [6, 'Password must be at least 6 characters']
   },
-  workshops:[{
+  workshops: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workshop',
   }],
+  workshopRegistrations: [universityWorkshopRegistrationSchema],
   assessments: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Assessment',
   }],
-  students:[{
+  students: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
   }]

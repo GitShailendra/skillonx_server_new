@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
+scripts/
 # Node.js / NPM
 node_modules/
 npm-debug.log

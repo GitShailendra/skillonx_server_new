@@ -23,6 +23,7 @@ const QuestionRoute = require("./routes/QuestionRoutes")
 const CheckType = require("./routes/CheckType")
 const addWorkshop = require("./routes/addWorkshop")
 const addAssessments = require("./routes/addAssessments")
+const adminRoute = require("./routes/adminRoutes")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
 app.use(
@@ -61,7 +62,7 @@ app.use("/questions",QuestionRoute)
 app.use("/check-type",CheckType)
 app.use("/workshops",addWorkshop)
 app.use("/assessments",addAssessments)
-
+app.use("/admin",adminRoute)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });

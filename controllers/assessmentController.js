@@ -59,7 +59,8 @@ exports.addAssessmentToUniversity = async (req, res) => {
         
         // Find student and populate their workshops
         const student = await Student.findById(studId)
-            .populate('workshops'); // Populate workshops array
+            .populate('workshops')
+            .populate('assessmentResults.assessmentId')
         console.log(student)
         if (!student) {
             return res.status(404).json({ message: 'Student not found' });
@@ -70,7 +71,7 @@ exports.addAssessmentToUniversity = async (req, res) => {
                 message: 'No workshops registered for this student'
             });
         }
-
+        
         // Get workshop titles from student's registered workshops
         const workshopTitles = student.workshops.map(workshop => workshop.title);
 
@@ -94,10 +95,29 @@ exports.addAssessmentToUniversity = async (req, res) => {
             });
         }
 
-        res.status(200).json({ 
-            assessment: university.assessments,
-            universityName: university.universityName
+        
+
+      // Filter out submitted assessments
+      const unsubmittedAssessments = university.assessments.filter(assessment => {
+        const isSubmitted = student.assessmentResults.some(
+            result => result.assessmentId && 
+            result.assessmentId._id.toString() === assessment._id.toString()
+        );
+        return !isSubmitted; // Keep only unsubmitted assessments
+    });
+
+    // If all assessments are submitted
+    if (unsubmittedAssessments.length === 0) {
+        return res.status(200).json({ 
+            message: 'All assessments have been submitted'
         });
+    }
+
+    // Return only unsubmitted assessments
+    res.status(200).json({ 
+        assessment: unsubmittedAssessments,
+        universityName: university.universityName
+    });
 
     } catch (error) {
         console.error('Error fetching assessments:', error);

@@ -1,5 +1,26 @@
-// Backend: models/Workshop.js
+// models/Workshop.js
 const mongoose = require('mongoose');
+
+const workshopRegistrationSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    required: true
+  },
+  registrationDate: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['registered', 'attended', 'completed', 'cancelled'],
+    default: 'registered'
+  },
+  attendance: {
+    type: Boolean,
+    default: false
+  }
+}, { _id: false });
 
 const workshopSchema = new mongoose.Schema({
   title: {
@@ -44,6 +65,7 @@ const workshopSchema = new mongoose.Schema({
     ref: 'University',
     required: true
   },
+  registrations: [workshopRegistrationSchema],
   createdAt: {
     type: Date,
     default: Date.now
