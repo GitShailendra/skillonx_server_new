@@ -128,3 +128,81 @@ exports.getStudents = async (req, res) => {
       });
   }
 };
+exports.getWorkshopRegistrations = async (req, res) => {
+  try {
+    const { uniId } = req.params;
+    const university = await University.findById(uniId)
+      .populate({
+        path: 'workshopRegistrations',
+        populate: [
+          {
+            path: 'student',
+            select: 'firstName lastName'
+          },
+          {
+            path: 'workshop',
+            select: 'title'
+          }
+        ]
+      });
+
+    const registrations = university.workshopRegistrations
+      .filter(reg => !reg.isRead)
+      .map(reg => ({
+        id: reg._id,
+        studentName: `${reg.student.firstName} ${reg.student.lastName}`,
+        workshopTitle: reg.workshop.title,
+        date: reg.registrationDate
+      }));
+
+    res.status(200).json({
+      status: 'success',
+      registrations
+    });
+  } catch (error) {
+    console.error('Error fetching registrations:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching workshop registrations'
+    });
+  }
+};
+
+// Clear all notifications
+exports.clearNotifications = async (req, res) => {
+  const { uniId } = req.params;
+  
+  try {
+    const result = await University.findByIdAndUpdate(
+      uniId,
+      {
+        $set: {
+          "workshopRegistrations.$[elem].isRead": true
+        }
+      },
+      {
+        arrayFilters: [{ "elem.isRead": false }],
+        new: true
+      }
+    );
+
+    if (!result) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'University not found'
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'All notifications cleared',
+      data: result.workshopRegistrations
+    });
+  } catch (error) {
+    console.error('Error clearing notifications:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error clearing notifications'
+    });
+  }
+};

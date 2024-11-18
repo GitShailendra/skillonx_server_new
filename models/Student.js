@@ -79,6 +79,46 @@ const studentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workshop',
   }],
+  assessmentResults: [{
+    assessmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'submitted'],
+      default: 'pending'
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now
+    },
+    answers: [{
+      questionIndex: {
+        type: Number,
+        required: true
+      },
+      selectedOption: {
+        type: Number,
+        required: true
+      }
+    }],
+    score: {
+      obtainedMarks: {
+        type: Number,
+        required: true
+      },
+      totalMarks: {
+        type: Number,
+        required: true
+      },
+      percentage: {
+        type: Number,
+        required: true
+      }
+    }
+  }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);
