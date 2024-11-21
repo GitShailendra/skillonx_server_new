@@ -5,21 +5,63 @@ const Assessment = require("../models/AssessmentModel")
 exports.addAssessmentToUniversity = async (req, res) => {
     try {
       
-        const { title, description, questions, universityId } = req.body;
-        const assessment =   await Assessment.create({
-            title,
-            description,
-            questions,
-            university:universityId
-        });
-        await University.findByIdAndUpdate(
-            universityId,
-            {$push:{assessments:assessment._id}}
-        );
-        res.status(201).json({
-            status: 'success',
-            data: assessment
+        const { title, description, questions, universityId,workshopId } = req.body;
+        console.log(workshopId)
+        const workshop = await Workshop.findById(workshopId);
+        if (!workshop) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Workshop not found'
+            });
+        }
+
+        // 2. Get workshop duration and convert to number
+        const durationDays = parseInt(workshop.duration);
+        if (isNaN(durationDays)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid workshop duration'
+            });
+        }
+        const existingAssessments = await Assessment.countDocuments({
+          title: workshop.title,
+          university: universityId
+      });
+
+      // 4. Check if assessment limit reached
+      if (existingAssessments >= durationDays) {
+          return res.status(400).json({
+              status: 'error',
+              message: `Cannot add more assessments. Maximum ${durationDays} assessments allowed for ${durationDays} days workshop duration. Already added: ${existingAssessments}`
           });
+      }
+      const assessment = await Assessment.create({
+        title: workshop.title, // Use workshop title to match in getAssessmentsStudent
+        description,
+        questions,
+        university: universityId,
+        workshopId: workshop._id, // Store reference to workshop
+        assessmentNumber: existingAssessments + 1, // Track which assessment this is
+        totalAssessments: durationDays // Store total number of assessments allowed
+    });
+
+    // 6. Update university with new assessment
+    await University.findByIdAndUpdate(
+        universityId,
+        { $push: { assessments: assessment._id } }
+    );
+    res.status(201).json({
+      status: 'success',
+      data: {
+          assessment,
+          workshopInfo: {
+              title: workshop.title,
+              duration: durationDays,
+              assessmentsAdded: existingAssessments + 1,
+              remainingAssessments: durationDays - (existingAssessments + 1)
+          }
+      }
+  });
     } catch (error) {
       console.error('Assessment creation error:', error);
       res.status(400).json({

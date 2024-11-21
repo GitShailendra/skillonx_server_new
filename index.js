@@ -24,13 +24,13 @@ const CheckType = require("./routes/CheckType")
 const addWorkshop = require("./routes/addWorkshop")
 const addAssessments = require("./routes/addAssessments")
 const adminRoute = require("./routes/adminRoutes")
+const courseRequest = require("./routes/courseRequest")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://skillonx.com",
       "https://skillonx.com/",
       "https://lucky-yeot-c08cc8.netlify.app/"
     ],
@@ -63,6 +63,7 @@ app.use("/check-type",CheckType)
 app.use("/workshops",addWorkshop)
 app.use("/assessments",addAssessments)
 app.use("/admin",adminRoute)
+app.use("/course-requests",courseRequest)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });
