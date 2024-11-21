@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt")
 const Student = require('../models/Student');
 const University = require('../models/University'); 
-const {generateToken} = require("../utils/generateToken")
+const {generateToken} = require("../utils/generateToken");
+const Workshop = require("../models/Workshop");
+const Assessment = require("../models/AssessmentModel");
 // Controller for registering a university
 exports.registerUniversity = async (req, res) => {
   try {
@@ -131,29 +133,47 @@ exports.getStudents = async (req, res) => {
 exports.getWorkshopRegistrations = async (req, res) => {
   try {
     const { uniId } = req.params;
-    const university = await University.findById(uniId)
-      .populate({
-        path: 'workshopRegistrations',
-        populate: [
-          {
-            path: 'student',
-            select: 'firstName lastName'
-          },
-          {
-            path: 'workshop',
-            select: 'title'
-          }
-        ]
+    const university = await University.findById(uniId);
+    if (!university) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'University not found'
       });
+    }
+    // Populate with error handling for missing references
+    await university.populate([
+      {
+        path: 'workshopRegistrations.student',
+        select: 'firstName lastName',
+        options: { strictPopulate: false }
+      },
+      {
+        path: 'workshopRegistrations.workshop',
+        select: 'title',
+        options: { strictPopulate: false }
+      }
+    ]);
 
+    // Filter out registrations with missing workshop or student data
     const registrations = university.workshopRegistrations
-      .filter(reg => !reg.isRead)
+      .filter(reg => 
+        !reg.isRead && 
+        reg.workshop && 
+        reg.student && 
+        reg.student.firstName && 
+        reg.student.lastName
+      )
       .map(reg => ({
         id: reg._id,
         studentName: `${reg.student.firstName} ${reg.student.lastName}`,
         workshopTitle: reg.workshop.title,
         date: reg.registrationDate
-      }));
+      }))
+      .filter(Boolean); // Remove any null entries
+
+    // Log for debugging
+    console.log('Total registrations found:', university.workshopRegistrations.length);
+    console.log('Valid registrations after filtering:', registrations.length);
 
     res.status(200).json({
       status: 'success',
@@ -206,3 +226,151 @@ exports.clearNotifications = async (req, res) => {
     });
   }
 };
+
+exports.getdashboardData = async (req, res) => {
+  try {
+    const { uniId } = req.params;
+    const university = await University.findById(uniId)
+      .populate({
+        path: 'students',
+        options: { 
+          sort: { createdAt: -1 },
+          limit: 4
+        },
+        select: 'firstName lastName email createdAt universityName'
+      })
+      .populate({
+        path: 'workshops',
+        options: { 
+          sort: { createdAt: -1 },
+          limit: 5 
+        },
+        select: 'title description duration startDate createdAt'
+      })
+      .populate({
+        path: 'workshopRegistrations',
+        populate: [
+          {
+            path: 'student',
+            select: 'firstName lastName'
+          },
+          {
+            path: 'workshop',
+            select: 'title'
+          }
+        ],
+        options: { 
+          sort: { registrationDate: -1 },
+          limit: 5 
+        }
+      });
+
+    if (!university) {
+      return res.status(404).json({
+        success: false,
+        message: 'University not found'
+      });
+    }
+
+    // Get counts
+    const workshopCount = university.workshops.length;
+    const assessmentCount = university.assessments.length;
+    const studentCount = university.students.length;
+    const workshopRegistrationCount = university.workshopRegistrations.length;
+
+    // Get workshop registrations by status
+    const workshopRegistrationsByStatus = {
+      registered: university.workshopRegistrations.filter(reg => reg.status === 'registered').length,
+      attended: university.workshopRegistrations.filter(reg => reg.status === 'attended').length,
+      completed: university.workshopRegistrations.filter(reg => reg.status === 'completed').length,
+      cancelled: university.workshopRegistrations.filter(reg => reg.status === 'cancelled').length
+    };
+
+    // Format recent students data
+    const recentStudents = university.students.map(student => ({
+      id: student._id,
+      name: `${student.firstName} ${student.lastName}`,
+      email: student.email,
+      joinedDate: student.createdAt,
+      university: student.universityName
+    }));
+
+    // Format recent workshops data
+    const recentWorkshops = university.workshops.map(workshop => ({
+      id: workshop._id,
+      title: workshop.title,
+      description: workshop.description,
+      duration: workshop.duration,
+      startDate: workshop.startDate,
+      createdAt: workshop.createdAt
+    }));
+
+    // Format recent registrations data
+    const recentRegistrations = university.workshopRegistrations
+      .filter(reg => reg.student && reg.workshop) // Filter out any invalid registrations
+      .map(reg => ({
+        id: reg._id,
+        studentName: `${reg.student.firstName} ${reg.student.lastName}`,
+        workshopTitle: reg.workshop.title,
+        status: reg.status,
+        registrationDate: reg.registrationDate
+      }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        workshops: {
+          total: workshopCount,
+          registrations: {
+            total: workshopRegistrationCount,
+            byStatus: workshopRegistrationsByStatus
+          },
+          recentWorkshops // New field
+        },
+        assessments: {
+          total: assessmentCount,
+        },
+        students: {
+          total: studentCount,
+          recentStudents // New field
+        },
+        recentActivity: {
+          registrations: recentRegistrations // New field
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Dashboard data fetch error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching dashboard data',
+      error: error.message
+    });
+  }
+};
+exports.getName = async (req,res)=>{
+  try{
+      const university = await University.find({}).select('universityName')
+      const student = await Student.find({}).select('universityName')
+      if(!university){
+        return res.status(404).json({
+          success:false,
+          message:"university not found"
+        })
+      }
+      res.status(200).json({
+        success:true,
+        data:{
+          university,
+          student
+        },
+        message:"university fetched successfully"
+      })
+  }catch(error){
+    res.status(400).json({
+      success:false,
+      message:error.message
+    })
+  }
+}

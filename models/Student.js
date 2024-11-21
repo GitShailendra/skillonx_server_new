@@ -79,6 +79,14 @@ const studentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workshop',
   }],
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false
+  },
   assessmentResults: [{
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -118,6 +126,14 @@ const studentSchema = new mongoose.Schema({
         required: true
       }
     }
+  }],
+  universityId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'University',
+  },
+  courseRequest:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'CourseRequest'
   }]
 }, { timestamps: true });
 

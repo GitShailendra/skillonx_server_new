@@ -5,6 +5,7 @@ const Workshop = require("../models/Workshop")
 const University = require("../models/University")
 const Assessment  =require("../models/AssessmentModel")
 const {generateToken} = require("../utils/generateToken")
+const CourseRequest = require("../models/CourseRequest")
 // Controller for registering a student
 exports.registerStudent = async (req, res) => {
 
@@ -397,5 +398,70 @@ exports.updateStudent = async (req,res)=>{
       status: "error",
       message: "Error updating student profile"
     })
+  }
+}
+
+exports.getDashboardData = async (req,res)=>{
+  try {
+    const {studentId} = req.params
+    // const student = await Student.findById(studentId).populate('Workshop').populate('Assessment').populate('CourseRequest')
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Student not found'
+      });
+    }
+
+    // Count workshops where this student is registered
+    const workshopCount = await Workshop.countDocuments({
+      'registrations.student': studentId
+    });
+    const courseRequests = await CourseRequest.find({ studentId });
+
+    // Count requests by status
+    const courseRequestCounts = {
+      total: courseRequests.length,
+      pending: courseRequests.filter(req => req.status === 'pending').length,
+      approved: courseRequests.filter(req => req.status === 'approved').length,
+      rejected: courseRequests.filter(req => req.status === 'rejected').length
+    };
+    const assessmentCount = student.assessmentResults?.length || 0;
+    const courseRequestDetails = courseRequests.map(request => ({
+      id: request._id,
+      title: request.courseDetails.title,
+      category: request.courseDetails.category,
+      status: request.status,
+      requestDate: request.requestDate,
+      approvalDate: request.approvalDate
+    }));
+    const workshop = await Workshop.find({
+      'registrations.student': studentId
+    });
+    
+    console.log(courseRequestDetails," coruse details")
+    console.log('Student ID:', studentId);
+    console.log('Course Request Counts:', courseRequestCounts);
+    console.log('Workshop Count:', workshopCount);
+    console.log('Assessment Count:', assessmentCount);
+    console.log(workshop)
+    res.status(200).json({
+      status: 'success',
+      data: {
+        courseRequestDetails,
+        courseRequestCounts,
+        workshopCount,
+        assessmentCount,
+        workshop
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in getDashboardData:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching dashboard data',
+      error: error.message
+    });
   }
 }

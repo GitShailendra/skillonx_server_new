@@ -74,7 +74,17 @@ const universitySchema = new mongoose.Schema({
   students: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
-  }]
+    
+  }],
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false
+  }
+  
 }, { timestamps: true });
 
 module.exports = mongoose.model('University', universitySchema);
