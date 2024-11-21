@@ -31,12 +31,13 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://skillonx.com/",
-      "https://lucky-yeot-c08cc8.netlify.app/"
+      "https://skillonx.com",
+      
     ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      credentials: true
    
-    // methods:['GET','POST'],
-    credentials: true,
+   
   })
 );
 app.use(express.json());
