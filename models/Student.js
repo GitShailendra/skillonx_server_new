@@ -38,6 +38,14 @@ const studentSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters']
   },
+  verificationCode: {
+    type: String,
+    select: false // Don't return this field in queries
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
   address: {
     doorNumber: {
       type: String,
@@ -134,7 +142,22 @@ const studentSchema = new mongoose.Schema({
   courseRequest:[{
     type: mongoose.Schema.Types.ObjectId,
     ref:'CourseRequest'
-  }]
+  }],
+  termsAndConditions: {
+    accepted: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    acceptedDate: {
+      type: Date,
+      required: true
+    },
+    version: {
+      type: String,
+      default: '1.0' // You can update this when you make significant changes to your terms
+    }
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Student', studentSchema);

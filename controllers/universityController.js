@@ -4,39 +4,41 @@ const University = require('../models/University');
 const {generateToken} = require("../utils/generateToken");
 const Workshop = require("../models/Workshop");
 const Assessment = require("../models/AssessmentModel");
+const { sendVerificationEmail } = require("../config/emailConfig");
 // Controller for registering a university
+
 exports.registerUniversity = async (req, res) => {
   try {
-    // Check if user already exists
+    // Check if university already exists
     const existingUniversity = await University.findOne({ email: req.body.email });
     if (existingUniversity) {
-      return res.status(400).json({ message: 'Universituy already registered' });
+      return res.status(400).json({ message: 'University already registered' });
     }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    // Generate a random verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000);
+
+    // Create university with isVerified set to false
     const university = new University({
       ...req.body,
-      password: hashedPassword
+      password: hashedPassword,
+      verificationCode,
+      isVerified: false,
     });
+    console.log(university)
+    // Save the university
     await university.save();
-    const token = generateToken(university);
-    
-    // Remove password from response
-    const universityResponse = university.toObject();
-    delete universityResponse.password;
-    //set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    });
+
+    // Send the verification email
+    await sendVerificationEmail(req.body.email, verificationCode);
+
     res.status(201).json({
-      message: 'Student registered successfully',
-      token,
-      user: universityResponse
+      message: 'University registered successfully. Please verify your email to continue.',
     });
-    } catch (error) {
-    // Handling validation errors
+  } catch (error) {
     if (error.name === 'ValidationError') {
       const errors = Object.keys(error.errors).reduce((acc, key) => {
         acc[key] = error.errors[key].message;
@@ -44,7 +46,43 @@ exports.registerUniversity = async (req, res) => {
       }, {});
       return res.status(400).json({ errors });
     }
+    console.error(error.message);
     res.status(500).json({ error: 'An error occurred while registering the university' });
+  }
+};
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    // Find university with email and verification code
+    const university = await University.findOne({ email, verificationCode });
+    if (!university) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    // Mark as verified
+    university.isVerified = true;
+    university.verificationCode = null; // Clear the verification code
+    await university.save();
+
+    // Generate token
+    const token = generateToken(university);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    res.status(200).json({
+      message: 'Email verified successfully',
+      token,
+      user: { ...university.toObject(), password: undefined },
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'An error occurred during email verification' });
   }
 };
 
@@ -52,10 +90,15 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Find the user
+    // Find the university
     const university = await University.findOne({ email });
     if (!university) {
       return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if email is verified
+    if (!university.isVerified) {
+      return res.status(400).json({ message: 'Please verify your email before logging in' });
     }
 
     // Verify password
@@ -67,28 +110,24 @@ exports.login = async (req, res) => {
     // Generate token
     const token = generateToken(university);
 
-    // Remove password from response
-    const universityResponse = university.toObject();
-    delete universityResponse.password;
-
-    // Set cookie and send response
     res.cookie('token', token, {
       httpOnly: true,
       secure: false,
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
     res.json({
       message: 'Login successful',
       token,
-      user: universityResponse
+      user: { ...university.toObject(), password: undefined },
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 exports.logout = (req, res) => {
   res.cookie('token', '', {
     httpOnly: true,
@@ -374,3 +413,77 @@ exports.getName = async (req,res)=>{
     })
   }
 }
+exports.getProfile= async (req,res)=>{
+  try {
+    const { id } = req.params;
+    
+    // Only fetch the editable fields
+    const university = await University.findById(id).select('universityName  universityAddress recognizedBy');
+    
+    if (!university) {
+      return res.status(404).json({
+        success: false,
+        message: 'University not found'
+      });
+    }
+
+    return res.status(200).json(university);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+
+}
+exports.updateProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { universityName,  universityAddress, recognizedBy } = req.body;
+
+    // Validate required fields
+    if (!universityName  || !universityAddress || !recognizedBy) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    // Check if email is already used by another university
+   
+
+   
+
+    // Update only the editable fields
+    const updatedUniversity = await University.findByIdAndUpdate(
+      id,
+      {
+        universityName,
+        
+        universityAddress,
+        recognizedBy
+      },
+      { 
+        new: true,
+        select: 'universityName  universityAddress recognizedBy' 
+      }
+    );
+
+    if (!updatedUniversity) {
+      return res.status(404).json({
+        success: false,
+        message: 'University not found'
+      });
+    }
+
+    return res.status(200).json(updatedUniversity);
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+
+};

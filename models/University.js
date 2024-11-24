@@ -48,7 +48,7 @@ const universitySchema = new mongoose.Schema({
   universityAddress: {
     type: String,
     required: [true, 'University address is required'],
-    minlength: [10, 'Address must be at least 10 characters'],
+    minlength: [5, 'Address must be at least 10 characters'],
     maxlength: [300, 'Address cannot exceed 300 characters']
   },
   email: {
@@ -62,10 +62,22 @@ const universitySchema = new mongoose.Schema({
     required: [true, 'Password must be at least 6 characters'],
     minlength: [6, 'Password must be at least 6 characters']
   },
+  verificationCode: {
+    type: String,
+    select: false // Don't return this field in queries
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
   workshops: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Workshop',
   }],
+  materialId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Material',
+  },
   workshopRegistrations: [universityWorkshopRegistrationSchema],
   assessments: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -83,6 +95,21 @@ const universitySchema = new mongoose.Schema({
   resetPasswordExpires: {
     type: Date,
     select: false
+  },
+  termsAndConditions: {
+    accepted: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    acceptedDate: {
+      type: Date,
+      required: true
+    },
+    version: {
+      type: String,
+      default: '1.0'
+    }
   }
   
 }, { timestamps: true });
