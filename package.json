@@ -24,6 +24,7 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.11.15",
     "mongoose": "^8.7.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16"

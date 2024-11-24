@@ -36,7 +36,7 @@ const workshopSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Workshop category is required'],
-    enum: ['Web Development', 'English Communication', 'UI/UX Design', 'Version Control', 'Career Development']
+    enum: ['Web Development', 'English Communication', 'UI/UX Design', 'Version Control', 'Career Development','Aptitude','Programming']
   },
   level: {
     type: String,
@@ -47,14 +47,15 @@ const workshopSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Workshop duration is required']
   },
-  batchSize: {
-    type: String,
-    required: [true, 'Batch size is required']
-  },
+ 
   mode: {
     type: String,
     required: [true, 'Workshop mode is required'],
     enum: ['On Campus', 'Online Live', 'Hybrid']
+  },
+  password: {
+    type: String,
+    required: true
   },
   highlights: [{
     type: String,

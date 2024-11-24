@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 const sendEmail = async ({ to, subject, html }) => {
   try {
     const mailOptions = {
-      from: `SkillOnX <${process.env.EMAIL_USER}>`,
+      from: `skillonx <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html
@@ -27,5 +27,39 @@ const sendEmail = async ({ to, subject, html }) => {
     return false;
   }
 };
+const sendVerificationEmail = async (email, verificationCode) => {
+  try {
+    const verificationLink = `http://localhost:5173/verify?email=${encodeURIComponent(
+      email
+    )}&code=${verificationCode}`;
 
-module.exports = sendEmail;
+    const mailOptions = {
+      from: `skillonx <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Verify your email address',
+      html: `
+        <p>Thank you for registering at skillonx.</p>
+        <p>Your verification code is:</p>
+        <h2>${verificationCode}</h2>
+        <p>Alternatively, you can verify your email by clicking the link below:</p>
+        <a href="${verificationLink}" style="color: #007bff; text-decoration: none;">Verify My Email</a>
+        <p>If you did not register, please ignore this email.</p>
+      `,
+      text: `Thank you for registering at skillonx.\n\nYour verification code is: ${verificationCode}\n\nAlternatively, you can verify your email by visiting this link: ${verificationLink}\n\nIf you did not register, please ignore this email.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Verification email sent to:', email);
+    return true;
+  } catch (error) {
+    console.error('Error sending verification email:', error);
+    throw error;
+  }
+};
+
+
+
+module.exports = {
+  sendEmail,
+  sendVerificationEmail,
+};

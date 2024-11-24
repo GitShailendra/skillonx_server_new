@@ -2,7 +2,7 @@
 
 const Student = require('../models/Student');
 const University = require('../models/University');
-const sendEmail = require('../config/emailConfig');
+const {sendEmail} = require('../config/emailConfig');
 const bcrypt = require('bcrypt');
 
 // Utility function to generate reset token email HTML
@@ -134,7 +134,7 @@ exports.universityForgotPassword = async (req, res) => {
 
     const emailSent = await sendEmail({
       to: email,
-      subject: 'Password Reset Request - SkillOnX',
+      subject: 'Password Reset Request - skillonx',
       html: generateResetEmailHTML(user.universityName, resetToken)
     });
 
