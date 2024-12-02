@@ -25,6 +25,7 @@ const addWorkshop = require("./routes/addWorkshop")
 const addAssessments = require("./routes/addAssessments")
 const adminRoute = require("./routes/adminRoutes")
 const courseRequest = require("./routes/courseRequest")
+// const TestRoute = require("./routes/testRoute")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
 app.use(
@@ -32,11 +33,12 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://skillonx.com",
+      "https://magnificent-bublanina-c141eb.netlify.app"
       
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       credentials: true,
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization','X-Requested-With', 'Accept']
    
    
   })
@@ -69,6 +71,7 @@ app.use("/workshops",addWorkshop)
 app.use("/assessments",addAssessments)
 app.use("/admin",adminRoute)
 app.use("/course-requests",courseRequest)
+// app.use("/send",TestRoute)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
 });

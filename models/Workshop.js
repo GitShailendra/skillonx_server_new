@@ -19,6 +19,10 @@ const workshopRegistrationSchema = new mongoose.Schema({
   attendance: {
     type: Boolean,
     default: false
+  },
+  attendanceCount:{
+    type:Number,
+    default:0
   }
 }, { _id: false });
 
@@ -70,6 +74,30 @@ const workshopSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  batchSize: {
+    type: Number,
+    required: [true, 'Batch size is required'],
+    min: [1, 'Batch size must be at least 1']
+  },
+  location: {
+    type: String,
+    required: [true, 'Workshop location is required'],
+    trim: true
+  },
+  startDate: {
+    type: Date,
+    required: [true, 'Workshop start date is required'],
+    validate: {
+      validator: function(value) {
+        return value >= new Date();
+      },
+      message: 'Workshop start date cannot be in the past'
+    }
+  },
+  isAttendance:{
+    type:Boolean,
+    default:false
   }
 });
 

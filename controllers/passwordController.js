@@ -125,7 +125,48 @@ exports.studentResetPassword = async (req, res) => {
     });
   }
 };
+// Backend Controller - Add this to your existing controller file
 
+exports.studentResendResetCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Find the student
+    const student = await Student.findOne({ email });
+    
+    if (!student) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No account found with this email'
+      });
+    }
+
+    // Generate new reset token
+    const { resetToken } = await handlePasswordReset(Student, email);
+
+    // Send new email
+    const emailSent = await sendEmail({
+      to: email,
+      subject: 'Password Reset Code Resent - SkillOnX',
+      html: generateResetEmailHTML(student.firstName, resetToken)
+    });
+
+    if (!emailSent) {
+      throw new Error('Failed to send reset email');
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'New reset code sent to your email'
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+};
 // University Password Reset Controllers
 exports.universityForgotPassword = async (req, res) => {
   try {
@@ -209,3 +250,43 @@ exports.universityResetPassword = async (req, res) => {
   }
 };
 
+exports.universityResendResetCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    // Find the student
+    const university = await University.findOne({ email });
+    
+    if (!university) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No account found with this email'
+      });
+    }
+
+    // Generate new reset token
+    const { resetToken } = await handlePasswordReset(University, email);
+
+    // Send new email
+    const emailSent = await sendEmail({
+      to: email,
+      subject: 'Password Reset Code Resent - SkillOnX',
+      html: generateResetEmailHTML(university.universityName, resetToken)
+    });
+
+    if (!emailSent) {
+      throw new Error('Failed to send reset email');
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'New reset code sent to your email'
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+};

@@ -27,6 +27,8 @@ exports.registerUniversity = async (req, res) => {
       password: hashedPassword,
       verificationCode,
       isVerified: false,
+      isApproved: false, // New field for admin approval
+      approvalStatus: 'pending' // New field to track approval status
     });
     console.log(university)
     // Save the university
@@ -36,7 +38,7 @@ exports.registerUniversity = async (req, res) => {
     await sendVerificationEmail(req.body.email, verificationCode);
 
     res.status(201).json({
-      message: 'University registered successfully. Please verify your email to continue.',
+      message: 'University registered successfully. Please verify your email and wait for admin approval to continue.',
     });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -53,7 +55,7 @@ exports.registerUniversity = async (req, res) => {
 exports.verifyEmail = async (req, res) => {
   try {
     const { email, verificationCode } = req.body;
-
+    console.log(email)
     // Find university with email and verification code
     const university = await University.findOne({ email, verificationCode });
     if (!university) {
@@ -76,7 +78,8 @@ exports.verifyEmail = async (req, res) => {
     });
 
     res.status(200).json({
-      message: 'Email verified successfully',
+      message: 'Email verified successfully. Please wait for admin approval to access your account.',
+      approvalStatus: 'pending',
       token,
       user: { ...university.toObject(), password: undefined },
     });
@@ -100,7 +103,12 @@ exports.login = async (req, res) => {
     if (!university.isVerified) {
       return res.status(400).json({ message: 'Please verify your email before logging in' });
     }
-
+    if (!university.isApproved) {
+      return res.status(400).json({ 
+        message: 'Your account is pending admin approval. Please wait for approval before logging in.',
+        approvalStatus: university.approvalStatus
+      });
+    }
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, university.password);
     if (!isPasswordValid) {
@@ -388,31 +396,34 @@ exports.getdashboardData = async (req, res) => {
     });
   }
 };
-exports.getName = async (req,res)=>{
-  try{
-      const university = await University.find({}).select('universityName')
-      const student = await Student.find({}).select('universityName')
-      if(!university){
-        return res.status(404).json({
-          success:false,
-          message:"university not found"
-        })
-      }
-      res.status(200).json({
-        success:true,
-        data:{
-          university,
-          student
-        },
-        message:"university fetched successfully"
-      })
-  }catch(error){
+exports.getName = async (req, res) => {
+  try {
+    const university = await University.find({
+      isApproved: true,
+      approvalStatus: "approved"
+    }).select('universityName');
+
+    if (!university || university.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No approved universities found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        university,
+      },
+      message: "Approved universities fetched successfully"
+    });
+  } catch (error) {
     res.status(400).json({
-      success:false,
-      message:error.message
-    })
+      success: false,
+      message: error.message
+    });
   }
-}
+};
 exports.getProfile= async (req,res)=>{
   try {
     const { id } = req.params;

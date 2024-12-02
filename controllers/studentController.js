@@ -6,7 +6,7 @@ const University = require("../models/University")
 const Assessment  =require("../models/AssessmentModel")
 const {generateToken} = require("../utils/generateToken")
 const CourseRequest = require("../models/CourseRequest");
-const { sendVerificationEmail } = require('../config/emailConfig');
+const { sendVerificationEmail, sendEmail } = require('../config/emailConfig');
 // Controller for registering a student
 exports.registerStudent = async (req, res) => {
   try {
@@ -86,7 +86,54 @@ exports.verifyEmail = async (req, res) => {
 
     // Generate token
     const token = generateToken(student);
+    const template = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
+          <h1 style="color: #0d6efd;">Welcome to SkillonX!</h1>
+        </div>
+        
+        <div style="padding: 20px;">
+          <p>Dear ${student.firstName || 'Student'},</p>
+          
+          <p>Congratulations! Your skillonx account has been successfully created. You now have access to all our workshops and courses.</p>
+          
+          <div style="background-color: #e9ecef; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <h3 style="color: #495057; margin-top: 0;">Account Details</h3>
+            <p style="margin: 5px 0;"><strong>Account Created: ${student.createdAt}</strong></p>
+          </div>
 
+          <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0;">
+            <p style="margin: 0;"><strong>Important Security Tips:</strong></p>
+            <ul style="margin-top: 10px;">
+              <li>Never share your password with anyone</li>
+              <li>Use a strong, unique password</li>
+              <li>Enable two-factor authentication if available</li>
+              <li>Always log out when using shared devices</li>
+            </ul>
+          </div>
+
+          <p>Get Started:</p>
+          <ol style="color: #0d6efd;">
+            <li>Complete your profile</li>
+            <li>Browse our course catalog</li>
+            <li>Join upcoming workshops</li>
+          </ol>
+
+          <p style="margin-top: 20px;">Happy learning!<br>The skillonx Team</p>
+        </div>
+
+        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
+          <p>This is an account creation confirmation. Please do not reply to this email.</p>
+          <p>If you need assistance, please contact our support team.</p>
+        </div>
+      </div>
+    `;
+   const ress=  await sendEmail({
+      to: student.email,
+      subject: 'New Login Detected - skillonx Account',
+      html: template
+    });
+    console.log("email send successfully ", ress)
     // Set cookie and send response
     res.cookie('token', token, {
       httpOnly: true,
@@ -119,10 +166,75 @@ exports.login = async (req, res) => {
     if (!student.isVerified) {
       return res.status(400).json({ message: 'Please verify your email before logging in' });
     }
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, student.password);
     if (!isPasswordValid) {
       return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Get device and location information
+    const deviceInfo = {
+      userAgent: req.headers['user-agent'],
+      ip: req.ip || req.connection.remoteAddress,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Check if this is a new device
+    const isNewDevice = !student.devices?.some(device => 
+      device.userAgent === deviceInfo.userAgent && device.ip === deviceInfo.ip
+    );
+
+    if (isNewDevice) {
+      // Update student's devices array
+      if (!student.devices) student.devices = [];
+      student.devices.push(deviceInfo);
+      await student.save();
+
+      // Send new login alert email
+      const loginAlertTemplate = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background-color: #ff9800; padding: 20px; text-align: center;">
+            <h1 style="color: white;">New Login Alert</h1>
+          </div>
+          
+          <div style="padding: 20px;">
+            <p>Dear ${student.firstName},</p>
+            
+            <p>We detected a new login to your SkillonX account from a device we haven't seen before.</p>
+            
+            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0;">
+              <h3 style="color: #333; margin-top: 0;">Login Details</h3>
+              <p><strong>Date & Time:</strong> ${deviceInfo.timestamp}</p>
+              
+              <p><strong>Device:</strong> ${deviceInfo.userAgent}</p>
+            </div>
+
+            <div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 4px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Wasn't you?</strong></p>
+              <p>If you don't recognize this login activity, please:</p>
+              <ol>
+                <li>Change your password immediately</li>
+                <li>Enable two-factor authentication</li>
+                <li>Contact our support team</li>
+              </ol>
+            </div>
+
+            <p style="margin-top: 20px;">Best regards,<br>The SkillonX Security Team</p>
+          </div>
+
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
+            <p>This is an automated security alert. Please do not reply to this email.</p>
+            <p>If you need assistance, please contact our support team.</p>
+          </div>
+        </div>
+      `;
+
+      await sendEmail({
+        to: student.email,
+        subject: 'New Login Detected - SkillonX Account',
+        html: loginAlertTemplate
+      });
     }
 
     // Generate token
@@ -230,7 +342,52 @@ exports.registerWorkshop = async (req, res) => {
         },
         { session }
       );
+      const formattedDate = new Date(workshopDate).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const emailTemplate = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
+            <h1 style="color: #0d6efd;">Workshop Registration Confirmation</h1>
+          </div>
+          
+          <div style="padding: 20px;">
+            <p>Dear ${student.firstName || 'Student'},</p>
+            
+            <p>Your registration for the following workshop has been confirmed:</p>
+            
+            <div style="background-color: #e9ecef; padding: 15px; border-radius: 4px; margin: 20px 0;">
+              <h3 style="color: #495057; margin-top: 0;">${workshopTitle}</h3>
+              <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedDate}</p>
+              <p style="margin: 5px 0;"><strong>Venue:</strong> ${workshopVenue}</p>
+            </div>
+            
+            <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Important Information:</strong></p>
+              <ul style="margin-top: 10px;">
+                <li>Please arrive 10 minutes before the workshop starts</li>
+                <li>Bring your student ID for verification</li>
+                <li>Have any required materials ready</li>
+              </ul>
+            </div>
 
+            <p style="margin-top: 20px;">Best regards,<br>The SkillonX Team</p>
+          </div>
+
+          <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
+            <p>If you need any assistance, please contact our support team.</p>
+          </div>
+        </div>
+      `;
+      const ress = await sendEmail({
+        to: student.email,
+        subject: `Workshop Registration Confirmation - ${workshopTitle}`,
+        html: emailTemplate
+      });
+      console.log(ress)
       // Commit the transaction
       await session.commitTransaction();
 
