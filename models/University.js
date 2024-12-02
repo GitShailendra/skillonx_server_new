@@ -88,6 +88,14 @@ const universitySchema = new mongoose.Schema({
     ref: 'Student',
     
   }],
+  isApproved: { type: Boolean, default: false },
+  approvalStatus: { 
+    type: String, 
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
+  approvalRemarks: String,
+  approvalDate: Date,
   resetPasswordToken: {
     type: String,
     select: false

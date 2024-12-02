@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 const University = require("../models/University")
 const mongoose = require('mongoose')
 const Workshop  =require('../models/Workshop')
-const Student = require("../models/Student")
+const Student = require("../models/Student");
+const CourseRequest = require('../models/CourseRequest')
+const { sendApprovalEmail, sendBulkWelcomeEmail } = require('../config/emailConfig');
+const {catchAsync} = require("../utils/catchAsync")
 exports.createAdmin = async (req, res) => {
     try {
         const { email, password, setupKey } = req.body;
@@ -96,7 +99,7 @@ exports.loginAdmin = async (req, res) => {
         const token = jwt.sign(
             { id: admin._id, role: 'admin' },
             process.env.JWT_KEY,
-            { expiresIn: '1d' }
+            { expiresIn: '1h' }
         );
 
         res.status(200).json({
@@ -317,3 +320,279 @@ exports.getDashboard = async (req, res) => {
         });
     }
 };
+exports.getPendingUniversities = async (req, res) => {
+    try {
+      const universities = await University.find({
+        isVerified: true,
+        isApproved: { $in: [false, null] },
+        approvalStatus: { $ne: 'rejected' }
+      }).select('universityName email universityAddress recognizedBy createdAt');
+  
+      res.status(200).json({
+        success: true,
+        universities
+      });
+    } catch (error) {
+      console.error('Error fetching pending universities:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching pending universities'
+      });
+    }
+  };
+
+  exports.updateUniversityApproval = async (req, res) => {
+    try {
+      const { universityId } = req.params;
+      const { isApproved, remarks } = req.body;
+  
+      const university = await University.findById(universityId);
+      
+      if (!university) {
+        return res.status(404).json({
+          success: false,
+          message: 'University not found'
+        });
+      }
+  
+      // If university is not approved, delete it from database
+      if (!isApproved) {
+        // Send rejection email before deletion
+        const emailSent = await sendApprovalEmail(
+          university.email,
+          false,
+          university.universityName,
+          remarks
+        );
+  
+        // Delete the university
+        await University.findByIdAndDelete(universityId);
+  
+        return res.status(200).json({
+          success: true,
+          message: 'University rejected and removed from database',
+          emailSent: emailSent
+        });
+      }
+  
+      // If approved, update the university details
+      university.isApproved = isApproved;
+      university.approvalStatus = 'approved';
+      university.approvalRemarks = remarks;
+      university.approvalDate = new Date();
+  
+      await university.save();
+  
+      // Send approval email
+      const emailSent = await sendApprovalEmail(
+        university.email,
+        true,
+        university.universityName,
+        remarks
+      );
+  
+      res.status(200).json({
+        success: true,
+        message: 'University approved successfully',
+        emailSent: emailSent
+      });
+    } catch (error) {
+      console.error('Error updating university approval:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error updating university approval status'
+      });
+    }
+  };
+
+  exports.messageController = async (req, res) => {
+    try {
+      const { students, subject, message } = req.body; // Now accepting subject and message
+  
+      if (!students || !Array.isArray(students)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid student data provided'
+        });
+      }
+  
+      if (!message) { // Validate message exists
+        return res.status(400).json({
+          success: false,
+          message: 'Message content is required'
+        });
+      }
+  
+      // Fetch student details from the Student model
+      const studentDetails = await Student.find(
+        { _id: { $in: students } },
+        'email firstName lastName'
+      );
+  
+      if (!studentDetails.length) {
+        return res.status(404).json({
+          success: false,
+          message: 'No valid students found'
+        });
+      }
+  
+      // Format student data for email sending
+      const formattedStudents = studentDetails.map(student => ({
+        email: student.email,
+        firstName: student.firstName,
+        lastName: student.lastName
+      }));
+  
+      // Send bulk emails with custom message
+      const summary = await sendBulkWelcomeEmail(formattedStudents, subject, message);
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Messages sent successfully',
+        summary: {
+          total: summary.total,
+          successful: summary.successful,
+          failed: summary.failed,
+          details: summary.details
+        }
+      });
+  
+    } catch (error) {
+      console.error('Error in sendMessages:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send messages',
+        error: error.message
+      });
+    }
+  };
+  exports.getStudentById = async (req, res) => {
+    try {
+        const student = await Student.findById(req.params.id)
+            .populate('workshops', 'title status startDate endDate')
+            .populate({
+                path: 'assessmentResults.assessmentId',
+                model: 'Assessment',
+                select: 'title description'  // Add any other assessment fields you need
+            })
+            .populate('courseRequest', 'title status')  // Add fields you want from CourseRequest
+            .select('-password')
+            .lean();
+            
+        // console.log(student)
+
+        if (!student) {
+            res.status(404);
+            throw new Error('Student not found');
+        }
+
+        res.status(200).json({
+            success: true,
+            student
+        });
+    } catch (error) {
+        if (error.name === 'CastError') {
+            res.status(400);
+            throw new Error('Invalid student ID');
+        }
+        res.status(500);
+        throw new Error('Error fetching student: ' + error.message);
+    }
+}
+exports.getStudentsWithAccess = catchAsync(async (req, res) => {
+    // Find all students with approved course requests
+    const studentsWithAccess = await Student.find({
+      'courseRequest': { $exists: true, $ne: [] }
+    })
+    .populate({
+      path: 'courseRequest',
+      match: { status: 'approved' },
+      select: 'courseDetails status requestDate approvalDate'
+    })
+    .populate('universityId', 'name')
+    .select('firstName lastName email phone universityName courseRequest')
+    .lean();
+  
+    // Filter out students with no approved courses
+    const filteredStudents = studentsWithAccess.filter(student => 
+      student.courseRequest && student.courseRequest.length > 0
+    );
+  
+    // Format the response
+    const formattedStudents = filteredStudents.map(student => ({
+      _id: student._id,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      email: student.email,
+      phone: student.phone,
+      universityName: student.universityName,
+      courses: student.courseRequest.map(request => ({
+        _id: request._id,
+        title: request.courseDetails.title,
+        description: request.courseDetails.description,
+        category: request.courseDetails.category,
+        duration: request.courseDetails.duration,
+        mode: request.courseDetails.mode,
+        requestDate: request.requestDate,
+        approvalDate: request.approvalDate
+      })),
+      totalApprovedCourses: student.courseRequest.length
+    }));
+  
+    res.status(200).json({
+      success: true,
+      count: formattedStudents.length,
+      students: formattedStudents
+    });
+  });
+  exports.deleteCourseAccess = catchAsync(async (req, res) => {
+    const { studentId, courseRequestId } = req.params;
+  
+    const session = await mongoose.startSession();
+    session.startTransaction();
+  
+    try {
+      const courseRequest = await CourseRequest.findByIdAndDelete(
+        courseRequestId,
+        { session }
+      );
+  
+      if (!courseRequest) {
+        await session.abortTransaction();
+        return res.status(404).json({
+          success: false,
+          message: 'Course request not found'
+        });
+      }
+  
+      const updatedStudent = await Student.findByIdAndUpdate(
+        studentId,
+        { $pull: { courseRequest: courseRequestId } },
+        { session, new: true }
+      );
+  
+      if (!updatedStudent) {
+        await session.abortTransaction();
+        return res.status(404).json({
+          success: false,
+          message: 'Student not found'
+        });
+      }
+  
+      await session.commitTransaction();
+  
+      res.status(200).json({
+        success: true,
+        message: 'Course access successfully removed',
+        data: {
+          studentId,
+          courseRequestId
+        }
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  });

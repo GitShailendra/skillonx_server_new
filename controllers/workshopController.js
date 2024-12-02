@@ -16,8 +16,22 @@ exports.addWorkshopToUniversity = async (req, res) => {
       mode,
       highlights,
       universityId,
-      workshopPassword  // New field
+      workshopPassword , // New field
+      location,
+      startDate
     } = req.body;
+
+
+    const workshopDate = new Date(startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (workshopDate < today) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Workshop start date cannot be in the past'
+      });
+    }
 
     // Create new workshop with password
     const workshop = await Workshop.create({
@@ -31,9 +45,11 @@ exports.addWorkshopToUniversity = async (req, res) => {
       mode,
       highlights,
       university: universityId,
-      password: workshopPassword  // Save the password
+      password: workshopPassword,  // Save the password
+      location,
+      startDate: workshopDate
     });
-
+    console.log(workshop)
     // Add workshop to university's workshops array
     await University.findByIdAndUpdate(
       universityId,
@@ -292,3 +308,73 @@ exports.getWorkshops = async (req, res) => {
     });
   }
 };
+
+exports.toggleAttendance = async (req,res)=>{
+  try {
+    const { workshopId } = req.params;
+    const { isAttendance } = req.body;
+    
+    const workshop = await Workshop.findById(workshopId);
+    
+    if (!workshop) {
+      return res.status(404).json({ message: 'Workshop not found' });
+    }
+    
+    // When toggling attendance off, reset all students' attendance status
+    if (!isAttendance) {
+      workshop.registrations.forEach(registration => {
+        registration.attendance = false;
+      });
+    }
+    
+    workshop.isAttendance = isAttendance;
+    await workshop.save();
+    
+    res.json({ success: true, data: workshop });
+  } catch (error) {
+    console.error('Error toggling attendance:', error);
+    res.status(500).json({ message: 'Failed to update attendance status' });
+  }
+}
+
+exports.markAttendance = async (req,res)=>{
+  try {
+    const { workshopId } = req.params;
+    const { studentId, isWorkshopAttendanceEnabled } = req.body;
+    
+    const workshop = await Workshop.findById(workshopId);
+    
+    if (!workshop) {
+      return res.status(404).json({ message: 'Workshop not found' });
+    }
+    
+    // Find the student's registration
+    const registration = workshop.registrations.find(
+      reg => reg.student.toString() === studentId && reg.status === 'registered'
+    );
+    
+    if (!registration) {
+      return res.status(400).json({ message: 'Student not registered for this workshop' });
+    }
+    
+    // Reset attendance if workshop attendance was toggled
+    if (isWorkshopAttendanceEnabled !== workshop.isAttendance) {
+      registration.attendance = false;
+    }
+    
+    // Update the attendance status and increment the count
+    registration.attendance = true;
+    registration.attendanceCount = (registration.attendanceCount || 0) + 1;
+    
+    await workshop.save();
+    
+    res.json({ 
+      success: true, 
+      message: 'Attendance marked successfully',
+      data: workshop 
+    });
+  } catch (error) {
+    console.error('Error marking attendance:', error);
+    res.status(500).json({ message: 'Failed to mark attendance' });
+  }
+}
