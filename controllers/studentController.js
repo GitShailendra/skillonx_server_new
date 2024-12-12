@@ -50,7 +50,7 @@ exports.registerStudent = async (req, res) => {
     }
 
     // Send the verification email
-    await sendVerificationEmail(req.body.email, verificationCode);
+    await sendVerificationEmail(req.body.email, verificationCode,req.body.userType);
 
     res.status(201).json({
       message: 'Student registered successfully. Please verify your email to continue.',
@@ -86,51 +86,199 @@ exports.verifyEmail = async (req, res) => {
 
     // Generate token
     const token = generateToken(student);
+    // const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    // const logoPath = `/images/primaryLogo.png`;
+    // const absoluteLogoUrl = `${serverUrl}${logoPath}`;
+    // <!-- Test with absolute URL -->
+    //             <img src="/images/primaryLogo.png" 
+    //                  alt="SkillonX Logo" 
+    //                  style="width: 80px; height: 80px; margin-bottom: 20px;"
+    //                  onerror="this.onerror=null; this.src='https://via.placeholder.com/80'; console.log('Logo failed to load');"></img>
+    // console.log('Debug - Logo URL:', absoluteLogoUrl);
     const template = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
-          <h1 style="color: #0d6efd;">Welcome to SkillonX!</h1>
-        </div>
-        
-        <div style="padding: 20px;">
-          <p>Dear ${student.firstName || 'Student'},</p>
-          
-          <p>Congratulations! Your skillonx account has been successfully created. You now have access to all our workshops and courses.</p>
-          
-          <div style="background-color: #e9ecef; padding: 15px; border-radius: 4px; margin: 20px 0;">
-            <h3 style="color: #495057; margin-top: 0;">Account Details</h3>
-            <p style="margin: 5px 0;"><strong>Account Created: ${student.createdAt}</strong></p>
-          </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!--[if mso]>
+        <noscript>
+            <xml>
+                <o:OfficeDocumentSettings>
+                    <o:PixelsPerInch>96</o:PixelsPerInch>
+                </o:OfficeDocumentSettings>
+            </xml>
+        </noscript>
+        <![endif]-->
+        <style type="text/css">
+            /* Reset styles */
+            body, #bodyTable { margin:0; padding:0; width:100% !important; }
+            img { border:0; height:auto; line-height:100%; outline:none; text-decoration:none; }
+            table { border-collapse:collapse !important; }
+            
+            /* iOS BLUE LINKS */
+            a[x-apple-data-detectors] {
+                color: inherit !important;
+                text-decoration: none !important;
+                font-size: inherit !important;
+                font-family: inherit !important;
+                font-weight: inherit !important;
+                line-height: inherit !important;
+            }
 
-          <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>Important Security Tips:</strong></p>
-            <ul style="margin-top: 10px;">
-              <li>Never share your password with anyone</li>
-              <li>Use a strong, unique password</li>
-              <li>Enable two-factor authentication if available</li>
-              <li>Always log out when using shared devices</li>
-            </ul>
-          </div>
+            /* Mobile styles */
+            @media screen and (max-width: 600px) {
+                .mobile-padding {
+                    padding-left: 5% !important;
+                    padding-right: 5% !important;
+                }
+                
+                .responsive-table {
+                    width: 100% !important;
+                }
 
-          <p>Get Started:</p>
-          <ol style="color: #0d6efd;">
-            <li>Complete your profile</li>
-            <li>Browse our course catalog</li>
-            <li>Join upcoming workshops</li>
-          </ol>
+                .mobile-text-center {
+                    text-align: center !important;
+                }
 
-          <p style="margin-top: 20px;">Happy learning!<br>The skillonx Team</p>
-        </div>
+                .mobile-image {
+                    height: auto !important;
+                    max-width: 100% !important;
+                    width: 100% !important;
+                }
+            }
+        </style>
+    </head>
+    <body style="margin: 0 !important; padding: 0 !important; background: #f8f9fa;">
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+            <tr>
+                <td align="center" style="padding: 20px 0px;">
+                    <!-- Email Container -->
+                    <table class="responsive-table" border="0" cellpadding="0" cellspacing="0" width="600" style="background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <!-- Header -->
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #2193b0, #6dd5ed); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+                                
+                                <h1 style="color: #ffffff; margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 28px; font-weight: 600;">Welcome to Skillonx!</h1>
+                            </td>
+                        </tr>
 
-        <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
-          <p>This is an account creation confirmation. Please do not reply to this email.</p>
-          <p>If you need assistance, please contact our support team.</p>
-        </div>
-      </div>
+                        <!-- Main Content -->
+                        <tr>
+                            <td class="mobile-padding" style="padding: 40px 30px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td style="color: #333333; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6; padding-bottom: 20px;">
+                                            Dear ${student.firstName || 'Student'},
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #333333; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6; padding-bottom: 30px;">
+                                            🎉 Congratulations! Your Skillonx account has been successfully created. You're now part of a community dedicated to continuous learning and professional growth.
+                                        </td>
+                                    </tr>
+
+                                    <!-- Account Details -->
+                                    <tr>
+                                        <td style="background-color: #f8f9fa; padding: 25px; border-radius: 8px; border-left: 4px solid #2193b0; margin: 30px 0;">
+                                            <h3 style="color: #2193b0; margin: 0 0 15px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px;">Account Details</h3>
+                                            <p style="margin: 0; color: #555555; font-family: 'Segoe UI', Arial, sans-serif;">
+                                                <strong>Account Created:</strong> ${new Date(student.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Security Tips -->
+                                    <tr>
+                                        <td style="padding-top: 30px;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #fff8f3; padding: 25px; border-radius: 8px; border: 1px solid #ffe4d1;">
+                                                <tr>
+                                                    <td>
+                                                        <h3 style="color: #ff7f50; margin: 0 0 15px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px;">🔒 Security Best Practices</h3>
+                                                        <ul style="margin: 0; padding-left: 20px; color: #666666; font-family: 'Segoe UI', Arial, sans-serif;">
+                                                            <li style="margin-bottom: 10px;">Create a strong, unique password</li>
+                                                            <li style="margin-bottom: 10px;">Enable two-factor authentication</li>
+                                                            <li style="margin-bottom: 10px;">Never share your credentials</li>
+                                                            <li style="margin-bottom: 0;">Log out from shared devices</li>
+                                                        </ul>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Get Started Boxes -->
+                                    <tr>
+                                        <td style="padding-top: 30px;">
+                                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f0f9ff; padding: 25px; border-radius: 8px;">
+                                                <tr>
+                                                    <td>
+                                                        <h3 style="color: #2193b0; margin: 0 0 20px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px;">🚀 Get Started</h3>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                                            <tr>
+                                                                <td class="mobile-text-center" width="33%" style="padding: 10px;">
+                                                                    <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+                                                                        <div style="font-size: 24px; margin-bottom: 10px;">👤</div>
+                                                                        <div style="color: #444444; font-weight: 500; font-family: 'Segoe UI', Arial, sans-serif;">Complete Profile</div>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="mobile-text-center" width="33%" style="padding: 10px;">
+                                                                    <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+                                                                        <div style="font-size: 24px; margin-bottom: 10px;">📚</div>
+                                                                        <div style="color: #444444; font-weight: 500; font-family: 'Segoe UI', Arial, sans-serif;">Browse Courses</div>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="mobile-text-center" width="33%" style="padding: 10px;">
+                                                                    <div style="background: white; padding: 15px; border-radius: 6px; text-align: center;">
+                                                                        <div style="font-size: 24px; margin-bottom: 10px;">🎯</div>
+                                                                        <div style="color: #444444; font-weight: 500; font-family: 'Segoe UI', Arial, sans-serif;">Join Workshops</div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Signature -->
+                                    <tr>
+                                        <td style="padding-top: 30px; color: #333333; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.6;">
+                                            We're excited to have you on board!<br>
+                                            <strong style="color: #2193b0;">The Skillonx Team</strong>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+
+                        <!-- Footer -->
+                        <tr>
+                            <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px;">
+                                <p style="color: #666666; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 15px 0;">
+                                    This is an automated message. Please do not reply to this email.
+                                </p>
+                                <p style="color: #666666; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0;">
+                                    Need help? Contact our support team
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
     `;
    const ress=  await sendEmail({
       to: student.email,
-      subject: 'New Login Detected - skillonx Account',
+      subject: 'New Login Detected - Skillonx Account',
       html: template
     });
     console.log("email send successfully ", ress)
@@ -201,7 +349,7 @@ exports.login = async (req, res) => {
           <div style="padding: 20px;">
             <p>Dear ${student.firstName},</p>
             
-            <p>We detected a new login to your SkillonX account from a device we haven't seen before.</p>
+            <p>We detected a new login to your Skillonx account from a device we haven't seen before.</p>
             
             <div style="background-color: #f5f5f5; padding: 15px; border-radius: 4px; margin: 20px 0;">
               <h3 style="color: #333; margin-top: 0;">Login Details</h3>
@@ -220,7 +368,7 @@ exports.login = async (req, res) => {
               </ol>
             </div>
 
-            <p style="margin-top: 20px;">Best regards,<br>The SkillonX Security Team</p>
+            <p style="margin-top: 20px;">Best regards,<br>The Skillonx Security Team</p>
           </div>
 
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
@@ -232,7 +380,7 @@ exports.login = async (req, res) => {
 
       await sendEmail({
         to: student.email,
-        subject: 'New Login Detected - SkillonX Account',
+        subject: 'New Login Detected - Skillonx Account',
         html: loginAlertTemplate
       });
     }
@@ -243,7 +391,7 @@ exports.login = async (req, res) => {
     // Remove password from response
     const studentResponse = student.toObject();
     delete studentResponse.password;
-
+    console.log(student)
     // Set cookie and send response
     res.cookie('token', token, {
       httpOnly: true,
@@ -255,7 +403,8 @@ exports.login = async (req, res) => {
     res.json({
       message: 'Login successful',
       token,
-      user: studentResponse
+      user: studentResponse,
+      
     });
   } catch (error) {
     console.error(error);
@@ -281,8 +430,8 @@ exports.logout = (req, res) => {
 
 exports.registerWorkshop = async (req, res) => {
   try {
-    const { workshopId, studentId, workshopTitle, workshopDate, workshopVenue } = req.body;
-    
+    const { workshopId, studentId, workshopTitle, workshopDate, location } = req.body;
+    console.log(workshopDate,'=-----and------',location)
     // Check if student exists and get university info
     const student = await Student.findById(studentId);
     if (!student) {
@@ -348,6 +497,7 @@ exports.registerWorkshop = async (req, res) => {
         month: 'long',
         day: 'numeric'
       });
+      console.log('----------',formattedDate,'-------')
       const emailTemplate = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
@@ -360,9 +510,9 @@ exports.registerWorkshop = async (req, res) => {
             <p>Your registration for the following workshop has been confirmed:</p>
             
             <div style="background-color: #e9ecef; padding: 15px; border-radius: 4px; margin: 20px 0;">
-              <h3 style="color: #495057; margin-top: 0;">${workshopTitle}</h3>
+               <h3 style="color: #495057; margin-top: 0;">${workshopTitle}</h3>
               <p style="margin: 5px 0;"><strong>Date:</strong> ${formattedDate}</p>
-              <p style="margin: 5px 0;"><strong>Venue:</strong> ${workshopVenue}</p>
+              <p style="margin: 5px 0;"><strong>Location:</strong> ${location}</p>
             </div>
             
             <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0;">
@@ -374,7 +524,7 @@ exports.registerWorkshop = async (req, res) => {
               </ul>
             </div>
 
-            <p style="margin-top: 20px;">Best regards,<br>The SkillonX Team</p>
+            <p style="margin-top: 20px;">Best regards,<br>The Skillonx Team</p>
           </div>
 
           <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
@@ -603,6 +753,7 @@ exports.getDashboardData = async (req,res)=>{
     const {studentId} = req.params
     // const student = await Student.findById(studentId).populate('Workshop').populate('Assessment').populate('CourseRequest')
     const student = await Student.findById(studentId);
+    console.log(student)
     if (!student) {
       return res.status(404).json({
         status: 'error',
@@ -650,7 +801,8 @@ exports.getDashboardData = async (req,res)=>{
         workshopCount,
         assessmentCount,
         workshop
-      }
+      },
+      data2:student
     });
 
   } catch (error) {
@@ -662,3 +814,146 @@ exports.getDashboardData = async (req,res)=>{
     });
   }
 }
+exports.getRanks = async (req,res)=>{
+  const universityId = req.params.uniId
+  const university = await University.findById(universityId);
+
+  try {
+    const student = await Student.find({
+      universityName:university.universityName 
+    })
+    console.log(student)
+    res.status(200).json({
+      status: 'success',
+      data: student
+    })
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+exports.getStudentDetail = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // Get student data with populated workshop and assessment references
+    const student = await Student.findById(studentId)
+      .select('-password -verificationCode -devices')
+      .lean();
+
+    if (!student) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Student not found'
+      });
+    }
+
+    // Calculate overall performance metrics
+    const assessmentResults = student.assessmentResults || [];
+    const workshopCount = student.workshops?.length || 0;
+
+    // Calculate overall score from assessment results
+    let overallScore = 0;
+    if (assessmentResults.length > 0) {
+      const totalScore = assessmentResults.reduce((sum, result) => {
+        return sum + (result.score?.obtainedMarks / result.score?.totalMarks * 100 || 0);
+      }, 0);
+      overallScore = totalScore / assessmentResults.length;
+    }
+
+    // Get workshop details
+    const workshopDetails = await Workshop.find({
+      _id: { $in: student.workshops }
+    }).select('title startDate duration status completed registrations');
+    console.log(workshopDetails[0].startDate.toLocaleDateString())
+    // Get recent assessment details
+    const recentAssessments = await Promise.all(
+      assessmentResults.slice(-5).map(async (result) => {
+        const assessment = await Assessment.findById(result.assessmentId)
+          .select('title totalMarks');
+        
+        return {
+          title: assessment?.title || 'Unknown Assessment',
+          score: result.score,
+          submittedAt: result.submittedAt,
+          status: result.status
+        };
+      })
+    );
+
+    // Prepare response data
+    const responseData = {
+      studentInfo: {
+        id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        universityName: student.universityName
+      },
+      performance: {
+        overallScore: overallScore.toFixed(2),
+        totalAssessments: assessmentResults.length,
+        workshopsEnrolled: workshopCount,
+        completedWorkshops: workshopDetails.filter(w => w.completed).length
+      },
+      workshops: workshopDetails.map(workshop => {
+        // Find the student's registration for this workshop
+        const studentRegistration = workshop.registrations.find(
+          reg => reg.student.toString() === studentId
+        );
+        
+        return {
+          id: workshop._id,
+          title: workshop.title,
+          date: workshop.startDate,
+          duration: workshop.duration,
+          status: workshop.status,
+          completed: workshop.completed,
+          attendanceCount: studentRegistration?.attendanceCount || 0
+        };
+      }),
+      recentAssessments,
+      stats: {
+        averageScore: overallScore.toFixed(2),
+        highestScore: Math.max(...assessmentResults.map(r => 
+          (r.score?.obtainedMarks / r.score?.totalMarks * 100) || 0
+        )).toFixed(2),
+        totalSubmissions: assessmentResults.length
+      }
+    };
+
+    res.status(200).json({
+      status: 'success',
+      data: responseData,
+      workshopCount
+    });
+
+  } catch (error) {
+    console.error('Error fetching student detail:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching student details',
+      error: error.message
+    });
+  }
+};
+
+exports.getUniversityLeaderboard = async (req, res) => {
+  const { university } = req.query;
+  console.log(university)
+  // const universityy = await University.findOne(university);
+
+  try {
+    const student = await Student.find({
+      universityName:university 
+    })
+    console.log(student)
+    res.status(200).json({
+      status: 'success',
+      data: student
+    })
+  } catch (error) {
+    console.log(error)
+  }
+};

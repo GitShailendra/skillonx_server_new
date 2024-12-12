@@ -59,8 +59,10 @@ const universitySchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Password must be at least 6 characters'],
-    minlength: [6, 'Password must be at least 6 characters']
+    required: [true, 'Password is required'],
+    minlength: [8, 'Password must be at least 8 characters'],
+    // Remove the match validation from here
+    // select: false  // Don't return password in queries by default
   },
   verificationCode: {
     type: String,

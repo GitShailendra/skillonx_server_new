@@ -27,11 +27,16 @@ const sendEmail = async ({ to, subject, html }) => {
     return false;
   }
 };
-const sendVerificationEmail = async (email, verificationCode) => {
+const sendVerificationEmail = async (email, verificationCode,acoountType) => {
   try {
-    const verificationLink = `http://localhost:5173/verify?email=${encodeURIComponent(
-      email
-    )}&code=${verificationCode}`;
+    const baseUrl = 'http://localhost:5173';
+    const prodUrl = 'https://skillonx.com'
+    // For production
+    // const baseUrl = 'https://skillonx.com';
+    
+    const verificationLink = `${prodUrl}/verification-email?code=${verificationCode}&email=${encodeURIComponent(email)}&accountType=${acoountType}`;
+
+
 
     const mailOptions = {
       from: `skillonx <${process.env.EMAIL_USER}>`,
@@ -63,14 +68,14 @@ const sendApprovalEmail = async (universityEmail, isApproved, universityName, re
     const approvalTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center;">
-          <h1 style="color: #0d6efd;">SkillonX University Update</h1>
+          <h1 style="color: #0d6efd;">Skillonx University Update</h1>
         </div>
         
         <div style="padding: 20px;">
           <p>Dear ${universityName},</p>
           
           ${isApproved ? `
-            <p>Congratulations! Your university registration has been approved. You can now access your account on SkillonX.</p>
+            <p>Congratulations! Your university registration has been approved. You can now access your account on Skillonx.</p>
             
             <div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 4px; margin: 20px 0;">
               <strong>Status: Approved</strong>
@@ -83,7 +88,7 @@ const sendApprovalEmail = async (universityEmail, isApproved, universityName, re
               <li>Start managing your courses and students</li>
             </ol>
           ` : `
-            <p>Thank you for your interest in registering with SkillonX. After careful review of your application, we regret to inform you that we cannot approve your registration at this time.</p>
+            <p>Thank you for your interest in registering with Skillonx. After careful review of your application, we regret to inform you that we cannot approve your registration at this time.</p>
             
             <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 4px; margin: 20px 0;">
               <strong>Status: Not Approved</strong>
@@ -93,7 +98,7 @@ const sendApprovalEmail = async (universityEmail, isApproved, universityName, re
             <p>If you believe this decision was made in error or would like to submit additional information, please contact our support team.</p>
           `}
           
-          <p style="margin-top: 20px;">Best regards,<br>The SkillonX Team</p>
+          <p style="margin-top: 20px;">Best regards,<br>The Skillonx Team</p>
         </div>
 
         <div style="background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #6c757d;">
@@ -107,7 +112,7 @@ const sendApprovalEmail = async (universityEmail, isApproved, universityName, re
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: universityEmail,
-      subject: isApproved ? 'University Registration Approved - SkillonX' : 'University Registration Update - SkillonX',
+      subject: isApproved ? 'University Registration Approved - Skillonx' : 'University Registration Update - Skillonx',
       html: approvalTemplate
     };
 
@@ -151,9 +156,9 @@ const sendBulkWelcomeEmail = async (users, subject, messageContent) => {
       users.map(async (user) => {
         try {
           const mailOptions = {
-            from: `skillonx <${process.env.EMAIL_USER}>`,
+            from: `Skillonx <${process.env.EMAIL_USER}>`,
             to: user.email,
-            subject: subject || 'Message from skillonx',
+            subject: subject || 'Message from Skillonx',
             html: emailTemplate(user.firstName || 'Student', messageContent)
           };
 

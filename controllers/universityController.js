@@ -35,7 +35,7 @@ exports.registerUniversity = async (req, res) => {
     await university.save();
 
     // Send the verification email
-    await sendVerificationEmail(req.body.email, verificationCode);
+    await sendVerificationEmail(req.body.email, verificationCode,req.body.userType);
 
     res.status(201).json({
       message: 'University registered successfully. Please verify your email and wait for admin approval to continue.',
@@ -318,7 +318,10 @@ exports.getdashboardData = async (req, res) => {
         message: 'University not found'
       });
     }
-
+    const studentss = await Student.find({ 
+      universityName: university.universityName 
+  });
+  // console.log(studentss)
     // Get counts
     const workshopCount = university.workshops.length;
     const assessmentCount = university.assessments.length;
@@ -384,7 +387,8 @@ exports.getdashboardData = async (req, res) => {
         recentActivity: {
           registrations: recentRegistrations // New field
         }
-      }
+      },
+      studentss
     });
 
   } catch (error) {
