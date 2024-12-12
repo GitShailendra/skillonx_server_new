@@ -36,7 +36,9 @@ const studentSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters']
+    minlength: [8, 'Password must be at least 8 characters'],
+    // Remove the match validation from here
+    // select: false  // Don't return password in queries by default
   },
   verificationCode: {
     type: String,

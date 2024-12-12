@@ -88,12 +88,7 @@ const workshopSchema = new mongoose.Schema({
   startDate: {
     type: Date,
     required: [true, 'Workshop start date is required'],
-    validate: {
-      validator: function(value) {
-        return value >= new Date();
-      },
-      message: 'Workshop start date cannot be in the past'
-    }
+    
   },
   isAttendance:{
     type:Boolean,
