@@ -64,7 +64,7 @@ exports.registerStudent = async (req, res) => {
       }, {});
       return res.status(400).json({ errors });
     }
-    console.error(error.message);
+    console.error('erorr while resgistering',error);
     res.status(500).json({ error: 'An error occurred while registering the student' });
   }
 };
