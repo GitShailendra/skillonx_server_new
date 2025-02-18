@@ -26,6 +26,7 @@ const addWorkshop = require("./routes/addWorkshop")
 const addAssessments = require("./routes/addAssessments")
 const adminRoute = require("./routes/adminRoutes")
 const courseRequest = require("./routes/courseRequest")
+const careerRoutes = require("./routes/careerRoutes")
 // const TestRoute = require("./routes/testRoute")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
@@ -73,6 +74,7 @@ app.use("/workshops",addWorkshop)
 app.use("/assessments",addAssessments)
 app.use("/admin",adminRoute)
 app.use("/course-requests",courseRequest)
+app.use("/careers",careerRoutes)
 // app.use("/send",TestRoute)
 app.listen(PORT, () => {
   console.log(`server is running on port ${PORT}`);
