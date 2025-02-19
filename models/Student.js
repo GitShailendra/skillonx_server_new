@@ -46,7 +46,7 @@ const studentSchema = new mongoose.Schema({
   },
   isVerified: {
     type: Boolean,
-    default: false
+    default: true
   },
   address: {
     doorNumber: {

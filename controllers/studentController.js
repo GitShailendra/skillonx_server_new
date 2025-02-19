@@ -50,7 +50,7 @@ exports.registerStudent = async (req, res) => {
     }
 
     // Send the verification email
-    await sendVerificationEmail(req.body.email, verificationCode,req.body.userType);
+    // await sendVerificationEmail(req.body.email, verificationCode,req.body.userType);
 
     res.status(201).json({
       message: 'Student registered successfully. Please verify your email to continue.',
@@ -308,12 +308,13 @@ exports.login = async (req, res) => {
   try {
     // Find the user
     const student = await Student.findOne({ email });
+    console.log('email',student)
     if (!student) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-    if (!student.isVerified) {
-      return res.status(400).json({ message: 'Please verify your email before logging in' });
-    }
+    // if (!student.isVerified) {
+    //   return res.status(400).json({ message: 'Please verify your email before logging in' });
+    // }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, student.password);
