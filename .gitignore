@@ -49,7 +49,7 @@ yarn-error.log
 .env.test.local
 .env.production.local
 server/config/config.env
-
+scripts
 
 # Local Netlify folder
 .netlify

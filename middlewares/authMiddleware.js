@@ -2,7 +2,8 @@
 const jwt = require('jsonwebtoken');
 const Student = require('../models/Student');
 const University = require('../models/University');
-
+const HackathonParticipant = require('../models/HackathonParticipant');
+const ManageHackathon = require('../models/ManageHackathon')
 // Middleware for Student authentication
 const protectStudent = async (req, res, next) => {
   try {
@@ -111,6 +112,74 @@ const protectAny = async (req, res, next) => {
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
+// Middleware for Hackathon Participant authentication
+const protectHackathonParticipant = async (req, res, next) => {
+  try {
+    let token;
+    
+    // Check header
+    if (req.headers.authorization?.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    // Check cookies
+    else if (req.cookies?.token) {
+      token = req.cookies.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: 'Not authorized, no token' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+
+    // Get participant from token
+    const participant = await HackathonParticipant.findById(decoded.id).select('-password');
+    if (!participant) {
+      return res.status(401).json({ message: 'Participant not found' });
+    }
+
+    // Add participant to request object
+    req.user = participant;
+    req.userType = 'hackathonUser';
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Not authorized, token failed' });
+  }
+};
+const protectHackathonManager = async (req,res,next)=>{
+  try {
+    let token;
+    
+    if (req.headers.authorization?.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({ message: 'Not authorized, no token' });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_KEY);
+
+    // Get admin from token
+    const manageAdmin = await ManageHackathon.findById(decoded.id);
+    if (!manageAdmin) {
+      return res.status(401).json({ message: 'manageAdmin not found' });
+    }
+
+    
+
+    // Add admin to request object
+    req.user = manageAdmin;
+    req.userType = 'manageHackathon';
+    next();
+  } catch (error) {
+    res.status(401).json({ message: 'Not authorized, token failed' });
+  }
+}
 // const protect = async (req, res, next) => {
 //   try {
 //       const token = req.cookies.token;
@@ -162,4 +231,4 @@ const protectAny = async (req, res, next) => {
 //   }
 // };
 
-module.exports = { protectStudent, protectUniversity, protectAny};
+module.exports = { protectStudent, protectUniversity, protectAny,protectHackathonParticipant,protectHackathonManager};

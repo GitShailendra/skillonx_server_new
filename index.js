@@ -27,6 +27,7 @@ const addAssessments = require("./routes/addAssessments")
 const adminRoute = require("./routes/adminRoutes")
 const courseRequest = require("./routes/courseRequest")
 const careerRoutes = require("./routes/careerRoutes")
+const hackathonRoutes = require("./routes/hackathonRoutes")
 // const TestRoute = require("./routes/testRoute")
 // const workshopRoutes = require("./routes/workshopRoutes")
 connectDB();
@@ -35,7 +36,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://skillonx.com",
-      "https://magnificent-bublanina-c141eb.netlify.app"
+      "https://magnificent-bublanina-c141eb.netlify.app",
+      "https://amazing-starburst-efa549.netlify.app"
       
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -60,6 +62,7 @@ app.use("/home",home)
 app.use("/stayconnected",Email)
 app.use('/student', Student);
 app.use("/university",University)
+app.use("/hackathon",hackathonRoutes)
 app.use('/createenrollment',featureCourseEnrollment)
 app.use("/createprofessionalcourse",professionalCourse)
 app.use("/scheduleconsultation",scheduleConsultation)
